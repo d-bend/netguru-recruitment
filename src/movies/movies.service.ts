@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { MovieInfo } from './types/export';
@@ -24,20 +24,22 @@ export class MoviesService {
 
     return { title, genre, director, released };
   }
-  public async getMoviesByUser(uid: any): Promise<Partial<MovieInfo>[]> {
-    const query = await this.moviesRepository.find(
-      { owner: uid },
-      (err, docs) => {
-        err ? console.log(err) : null;
-        docs.map(({ title, genre, director, released }) => ({
-          title,
-          genre,
-          director,
-          released,
-        }));
-      },
+  public async getMoviesByUser(uid: Types.ObjectId): Promise<MovieInfo[]> {
+    const query = await this.moviesRepository.find({ owner: uid });
+    if (!query) {
+      console.log(query);
+    }
+
+    const filtered: MovieInfo[] = query.map(
+      ({ title, genre, director, released }) => ({
+        title,
+        genre,
+        director,
+        released,
+      }),
     );
-    return query;
+
+    return filtered;
   }
   private async saveToDB(
     uid: any,
