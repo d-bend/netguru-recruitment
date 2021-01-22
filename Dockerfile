@@ -4,7 +4,7 @@ ENV PORT 3000
 
 WORKDIR /app
 
-COPY ./package*.json .
+COPY ./package*.json ./
 
 RUN npm ci
 
@@ -17,7 +17,7 @@ FROM node:14.15-alpine
 WORKDIR /app
 
 COPY --from=builder /app/package*json ./
-COPY --chown=builder /app/dist ./dist/
+COPY --from=builder /app/dist ./dist/
 ENV NODE_ENV PRODUCTION
 
 RUN npm ci
