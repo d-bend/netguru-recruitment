@@ -1,0 +1,22 @@
+version: '3.8'
+
+services: 
+  movies_app: 
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    depends_on: 
+      - movies_database
+    env_file:
+      - docker.env
+    ports: 
+      - 3000:3000
+  movies_database:
+    image: mongo:4.4
+    volumes:
+      - movies_db:/data/db
+    env_file:
+      - docker.env
+    restart: always
+volumes:
+  movies_db:
