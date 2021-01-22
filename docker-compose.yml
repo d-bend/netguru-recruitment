@@ -6,11 +6,12 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on: 
+      - auth_service
       - movies_database
     env_file:
       - docker.env
     ports: 
-      - 3000:3000
+      - 8080:8080
   movies_database:
     image: mongo:4.4
     volumes:
@@ -18,5 +19,13 @@ services:
     env_file:
       - docker.env
     restart: always
+  auth_service:
+    build:
+      context: .
+      dockerfile: AuthServiceDockerfile
+    env_file:
+      - docker.env
+    ports:
+      - 3000:3000
 volumes:
   movies_db:

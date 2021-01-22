@@ -1,4 +1,3 @@
-import { MovieInfoService } from '../movie-info/movie-info.service';
 import { MovieInfo } from '../types/export';
 
 export class MockMovieInfoService {
