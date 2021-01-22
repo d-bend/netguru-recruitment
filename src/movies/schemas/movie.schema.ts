@@ -18,7 +18,7 @@ export class Movie {
   genre: string;
 
   @Prop()
-  directory: string;
+  director: string;
 }
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);

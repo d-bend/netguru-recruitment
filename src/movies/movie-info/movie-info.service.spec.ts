@@ -1,24 +1,29 @@
-import { HttpModule } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { HttpModule, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import moviesConfig from '../../../config/movies.config';
 import { MovieInfoService } from './movie-info.service';
+
+const mockedConfigService = {
+  get(key: string) {
+    switch (key) {
+      case 'moviesConfig.apiKey':
+        return '2c0935ff';
+      case 'moviesConfig.baseUrl':
+        return 'http://www.omdbapi.com/';
+    }
+  },
+};
 
 describe('MovieInfoService', () => {
   let service: MovieInfoService;
-  const OLD_ENV = process.env;
-  beforeAll(() => {
-    jest.resetModules();
-    process.env = { ...OLD_ENV };
-  });
-  afterAll(() => {
-    process.env = OLD_ENV;
-  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [ConfigModule.forRoot({ load: [moviesConfig] }), HttpModule],
-      providers: [MovieInfoService],
+      imports: [HttpModule],
+      providers: [
+        MovieInfoService,
+        { provide: ConfigService, useValue: mockedConfigService },
+      ],
     }).compile();
 
     service = module.get<MovieInfoService>(MovieInfoService);
@@ -28,8 +33,13 @@ describe('MovieInfoService', () => {
     expect(service).toBeDefined();
   });
   it('getMovieInfo sets correct date', async () => {
-    process.env.OMDB_API_KEY = '2c0935ff';
     const result = await service.getMovieInfo('The Godfather');
     expect(result.released).toEqual(new Date(1972, 2, 24));
+  });
+  it('getMovieInfo throws 404 on invalid movie title', async () => {
+    const expectedToThrow = async () => {
+      return await service.getMovieInfo('Im not real');
+    };
+    expect(expectedToThrow()).rejects.toThrowError(NotFoundException);
   });
 });

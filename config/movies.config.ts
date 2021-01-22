@@ -10,5 +10,5 @@ const { host, port, username, password, apiKey } = {
 export default registerAs('moviesConfig', () => ({
   uri: `mongodb://${username}:${password}@${host}:${port}`,
   baseUrl: 'http://www.omdbapi.com/',
-  apiKey: '2c0935ff',
+  apiKey,
 }));

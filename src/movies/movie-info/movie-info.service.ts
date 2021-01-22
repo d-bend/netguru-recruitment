@@ -1,13 +1,8 @@
-import { HttpService, Injectable } from '@nestjs/common';
+import { HttpService, Injectable, NotFoundException } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
 import { ConfigService } from '@nestjs/config';
 
-export interface MovieInfo {
-  title: string;
-  released: Date;
-  director: string;
-  genre: string;
-}
+import { MovieInfo } from '../types/export';
 
 @Injectable()
 export class MovieInfoService {
@@ -21,14 +16,21 @@ export class MovieInfoService {
   ) {
     this.baseUrl = this.config.get('moviesConfig.baseUrl');
     this.apiKey = this.config.get('moviesConfig.apiKey');
-    // this.apiKey = '2c0935ff';
   }
-
+  /** Get movie info from OMDB API
+   * Throws NotFoundException on invalid movie title
+   * @param title space separated movie title
+   */
   public async getMovieInfo(title: string): Promise<MovieInfo> {
     const parsedTitle = this.titleParser(title);
     const apiResponse = await this.httpService
       .get(`${this.baseUrl}?t=${parsedTitle}&apikey=${this.apiKey}`)
       .toPromise();
+
+    if (apiResponse.data.Response === 'False') {
+      throw new NotFoundException(apiResponse.data.Error);
+    }
+
     const filtered = this.filterKeys(apiResponse);
     return this.convertReleasedToDate(filtered);
   }
