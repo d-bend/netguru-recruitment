@@ -1,0 +1,17 @@
+FROM node:14.15-alpine AS clone
+RUN apk --no-cache add git
+WORKDIR /app
+RUN git clone https://github.com/netguru/nodejs-recruitment-task.git .
+
+
+FROM node:14.15-alpine
+
+WORKDIR /app
+
+COPY --from=clone app/package*.json  ./
+RUN npm install
+
+RUN mkdir ./src
+COPY --from=clone /app/src ./src
+
+CMD ["node", "./src/server.js"]

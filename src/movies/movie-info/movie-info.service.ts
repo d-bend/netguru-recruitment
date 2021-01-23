@@ -1,37 +1,45 @@
 import { HttpService, Injectable, NotFoundException } from '@nestjs/common';
-import { AxiosResponse } from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { cloneDeep } from 'lodash';
 
 import { MovieInfo } from '../types/export';
+import { MoviesConfig } from '../../../config/enums';
+import {
+  OmdbApiNullResponse,
+  OmdbApiField,
+  OmdbRelevantFields,
+} from './omdb-api-types';
+
+import { UtilsService } from '../../shared/utils/utils.service';
 
 @Injectable()
 export class MovieInfoService {
-  private baseUrl: string;
-  private relevantFields: string[] = ['Title', 'Released', 'Director', 'Genre'];
-  private apiKey: string;
+  private baseUrl = this.config.get(MoviesConfig.baseUrl);
+  private apiKey = this.config.get(MoviesConfig.apiKey);
 
   constructor(
     private readonly config: ConfigService,
     private readonly httpService: HttpService,
-  ) {
-    this.baseUrl = this.config.get('moviesConfig.baseUrl');
-    this.apiKey = this.config.get('moviesConfig.apiKey');
-  }
+    private readonly utils: UtilsService,
+  ) {}
+
   /** Get movie info from OMDB API
    * Throws NotFoundException on invalid movie title
    * @param title space separated movie title
    */
   public async getMovieInfo(title: string): Promise<MovieInfo> {
     const parsedTitle = this.titleParser(title);
-    const apiResponse = await this.httpService
-      .get(`${this.baseUrl}?t=${parsedTitle}&apikey=${this.apiKey}`)
-      .toPromise();
+    const url = `${this.baseUrl}?t=${parsedTitle}&apikey=${this.apiKey}`;
 
-    if (apiResponse.data.Response === 'False') {
+    const apiResponse = await this.httpService.get(url).toPromise();
+
+    if (apiResponse.data.Response === OmdbApiNullResponse.false) {
       throw new NotFoundException(apiResponse.data.Error);
     }
-
-    const filtered = this.filterKeys(apiResponse);
+    const filtered = this.utils.filterRelevantKeys<OmdbApiField>(
+      apiResponse.data,
+      OmdbRelevantFields,
+    );
     return this.convertReleasedToDate(filtered);
   }
 
@@ -39,16 +47,10 @@ export class MovieInfoService {
     return title.trim().split(' ').join('+');
   }
 
-  private filterKeys({ data }: AxiosResponse) {
-    return Object.keys(data)
-      .filter((key) => this.relevantFields.includes(key))
-      .reduce((obj, key) => {
-        obj[key.toLowerCase()] = data[key];
-        return obj;
-      }, {});
-  }
-
   private convertReleasedToDate(movieInfo: any): MovieInfo {
-    return { ...movieInfo, released: new Date(movieInfo.released) };
+    //movieInfo has to be any because one of the fields has a wrong type at this point
+
+    const cloned = cloneDeep(movieInfo);
+    return { ...cloned, released: new Date(cloned.released) };
   }
 }
