@@ -1,56 +1,70 @@
 import { Injectable } from '@nestjs/common';
 import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { lowerFirst } from 'lodash';
 
 import { MovieInfo } from './types/export';
-
-import { MovieInfoService } from './movie-info/movie-info.service';
 import { Movie, MovieDocument } from './schemas/movie.schema';
 
+import { MovieInfoService } from './movie-info/movie-info.service';
+import { UtilsService } from '../shared/utils/utils.service';
+import { OmdbRelevantFields } from './movie-info/omdb-api-types';
+
+type RelevantField = 'title' | 'released' | 'director' | 'genre';
 @Injectable()
 export class MoviesService {
+  private relevantFields: RelevantField[] = OmdbRelevantFields.map((field) =>
+    lowerFirst(field),
+  );
+
   constructor(
     @InjectModel(Movie.name)
     private readonly moviesRepository: Model<MovieDocument>,
     private readonly movieInfoService: MovieInfoService,
+    private readonly utils: UtilsService,
   ) {}
-  public async createMovie(uid: any, name: string): Promise<MovieInfo> {
+
+  public async createMovie(userId: any, name: string): Promise<MovieInfo> {
     const movieInfo = await this.movieInfoService.getMovieInfo(name);
 
-    const { title, genre, director, released } = await this.saveToDB(
-      uid,
-      movieInfo,
-    );
+    const saved = await this.saveToDB(userId, movieInfo);
+    const result: MovieInfo = this.utils.filterRelevantKeys<
+      RelevantField,
+      MovieInfo
+    >(saved, this.relevantFields);
 
-    return { title, genre, director, released };
+    return result;
   }
-  public async getMoviesByUser(uid: Types.ObjectId): Promise<MovieInfo[]> {
-    const query = await this.moviesRepository.find({ owner: uid });
+
+  public async getMoviesByUser(userId: Types.ObjectId): Promise<MovieInfo[]> {
+    const query = await this.moviesRepository.find({ owner: userId });
     if (!query) {
       console.log(query);
     }
-
-    const filtered: MovieInfo[] = query.map(
-      ({ title, genre, director, released }) => ({
-        title,
-        genre,
-        director,
-        released,
-      }),
-    );
+    const filtered: MovieInfo[] = query.map((doc: MovieDocument) => {
+      return this.utils.filterRelevantKeys<RelevantField, MovieInfo>(
+        doc,
+        this.relevantFields,
+      );
+    });
 
     return filtered;
   }
+
   private async saveToDB(
-    uid: any,
-    { title, genre, director, released }: MovieInfo,
+    userId: any,
+    movieInfo: MovieInfo,
   ): Promise<MovieDocument> {
+    const filtered = this.utils.filterRelevantKeys<RelevantField, MovieInfo>(
+      movieInfo,
+      this.relevantFields,
+    );
     return await this.moviesRepository.updateOne(
       {
-        owner: uid,
-        title,
+        owner: userId,
+        title: movieInfo.title,
       },
-      { owner: uid, title, genre, director, released },
+      { ...filtered, owner: userId },
     );
   }
 }

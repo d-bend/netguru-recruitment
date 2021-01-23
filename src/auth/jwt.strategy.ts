@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { JwtTokenPayload } from './jwtTokenPayload.interface';
 import { Role } from './role.enum';
+import { JwtConfig } from 'config/enums';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -12,21 +13,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: config.get('jwtConfig.jwtSecret'),
+      secretOrKey: config.get(JwtConfig.JWT_SECRET),
     });
   }
 
   async validate({ sub, role }: JwtTokenPayload) {
-    let assignedRole: Role;
-    switch (role) {
-      case 'basic':
-        assignedRole = Role.PREMIUM;
-        break;
-      case 'premium':
-        assignedRole = Role.BASIC;
-      default:
-        break;
-    }
-    return { userId: sub, role: assignedRole };
+    return { userId: sub, role };
   }
 }

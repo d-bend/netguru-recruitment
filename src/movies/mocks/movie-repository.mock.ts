@@ -13,7 +13,7 @@ export class MockMovieRepository {
     return [result, result, result, result];
   }
   public async updateOne(
-    _: Partial<Movie>,
+    dummyQuery: Partial<Movie>,
     { owner, title, genre, director, released }: Movie,
   ) {
     return {

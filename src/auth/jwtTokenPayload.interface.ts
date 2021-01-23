@@ -1,7 +1,9 @@
+import { Role } from './role.enum';
+
 export interface JwtTokenPayload {
   userId: number;
   name: string;
-  role: 'basic' | 'premium';
+  role: Role;
   iat: number;
   exp: number;
   iss: 'https://www.netguru.com/';

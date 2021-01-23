@@ -9,6 +9,7 @@ import { AppService } from './app.service';
 import { MoviesModule } from './movies/movies.module';
 import { MoviesController } from './controllers/movies.controller';
 import { AuthModule } from './auth/auth.module';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     MoviesModule,
     AuthModule,
+    SharedModule,
   ],
   controllers: [AppController, MoviesController],
   providers: [AppService],

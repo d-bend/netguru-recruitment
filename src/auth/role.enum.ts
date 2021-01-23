@@ -1,4 +1,4 @@
 export enum Role {
-  BASIC,
-  PREMIUM,
+  BASIC = 'basic',
+  PREMIUM = 'premium',
 }

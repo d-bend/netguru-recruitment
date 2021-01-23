@@ -6,6 +6,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtStrategy } from './jwt.strategy';
 import { BasicUserLookupService } from './basic-user-lookup/basic-user-lookup.service';
 import { BasicUserGuard } from './basic-user.guard';
+import { JwtConfig } from 'config/enums';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { BasicUserGuard } from './basic-user.guard';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
-        secret: config.get('jwtConfig.jwtSecret'),
+        secret: config.get(JwtConfig.JWT_SECRET),
       }),
       inject: [ConfigService],
     }),

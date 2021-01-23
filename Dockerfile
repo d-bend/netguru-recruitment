@@ -13,6 +13,5 @@ WORKDIR /app
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist/ ./dist/
 RUN npm ci
-RUN ls ./dist/src
 
 CMD ["npm","run", "start:prod"]

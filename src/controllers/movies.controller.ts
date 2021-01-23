@@ -12,6 +12,7 @@ import { MoviesService } from '../movies/movies.service';
 @Controller('/movies')
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
+
   @UseGuards(JwtAuthGuard, BasicUserGuard)
   @Get()
   public async getAll() {
