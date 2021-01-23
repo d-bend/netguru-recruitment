@@ -7,3 +7,8 @@ export enum MoviesConfig {
   baseUrl = 'moviesConfig.baseUrl',
   apiKey = 'moviesConfig.apiKey',
 }
+
+export enum RedisConfig {
+  host = 'redisConfig.host',
+  port = 'redisConfig.port',
+}

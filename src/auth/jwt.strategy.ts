@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { JwtTokenPayload } from './jwtTokenPayload.interface';
-import { Role } from './role.enum';
 import { JwtConfig } from 'config/enums';
 
 @Injectable()
