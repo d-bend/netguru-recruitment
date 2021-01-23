@@ -30,7 +30,7 @@ describe('MoviesService', () => {
 
     service = module.get<MoviesService>(MoviesService);
 
-    exampleUID = Types.ObjectId();
+    exampleUID = 12342;
   });
 
   it('should be defined', () => {

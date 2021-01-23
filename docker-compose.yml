@@ -32,9 +32,10 @@ services:
     image: redis:6-alpine
     volumes:
       - redis_data:/data
+      - ./redis/:/etc/redis/
+    entrypoint: redis-server /etc/redis/redis.conf
     restart: always
-    ports:
-      - 6379:6379
+
 
 volumes:
   movies_db:

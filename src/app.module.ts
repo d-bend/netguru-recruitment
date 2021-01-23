@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import moviesConfig from '../config/movies.config';
 import jwtConfig from '../config/jwt.config';
@@ -18,6 +19,7 @@ import { SharedModule } from './shared/shared.module';
       load: [moviesConfig, jwtConfig, redisConfig],
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     MoviesModule,
     AuthModule,
     SharedModule,

@@ -1,12 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 
 export type MovieDocument = Movie & Document;
 
 @Schema()
 export class Movie {
   @Prop({ index: true })
-  owner: Types.ObjectId;
+  owner: number;
 
   @Prop()
   title: string;

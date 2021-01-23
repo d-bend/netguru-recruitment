@@ -36,7 +36,7 @@ export class MoviesService {
     return result;
   }
 
-  public async getMoviesByUser(userId: Types.ObjectId): Promise<MovieInfo[]> {
+  public async getMoviesByUser(userId: number): Promise<MovieInfo[]> {
     const query = await this.moviesRepository.find({ owner: userId });
     if (!query) {
       console.log(query);
