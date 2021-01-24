@@ -4,16 +4,27 @@ export enum OmdbApiNullResponse {
 }
 
 // define the keys of API response from OMDB here
-export type OmdbApiField = 'Title' | 'Released' | 'Director' | 'Genre';
-
-/**
- * This app will exctract ONLY the fields listed below from OMDB Api response.
- * Feel free to add or remove fields that you want to see in this app,
- * Everything else will be handled for you!
- */
-export const OmdbRelevantFields: OmdbApiField[] = [
-  'Title',
-  'Released',
-  'Director',
-  'Genre',
-];
+export type OmdbApiField =
+  | 'Title'
+  | 'Year'
+  | 'Rated'
+  | 'Released'
+  | 'Runtime'
+  | 'Genre'
+  | 'Director'
+  | 'Writer'
+  | 'Actors'
+  | 'Plot'
+  | 'Language'
+  | 'Country'
+  | 'Awards'
+  | 'Poster'
+  | 'Ratings'
+  | 'Metascore'
+  | 'imdbRating'
+  | 'imdbVotes'
+  | 'Type'
+  | 'DVD'
+  | 'BoxOffice'
+  | 'Production'
+  | 'Websiste';

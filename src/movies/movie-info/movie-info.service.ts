@@ -5,15 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, upperFirst } from 'lodash';
 
-import { MovieInfo } from '../types/export';
+import { MovieInfo, RelevantField } from '../types/export';
 import { MoviesConfig } from '../../../config/enums';
-import {
-  OmdbApiNullResponse,
-  OmdbApiField,
-  OmdbRelevantFields,
-} from './omdb-api-types';
+import { OmdbApiNullResponse, OmdbApiField } from './omdb-api-types';
 
 import { UtilsService } from '../../shared/utils/utils.service';
 
@@ -33,7 +29,10 @@ export class MovieInfoService {
    * Throws NotFoundException on invalid movie title
    * @param title space separated movie title
    */
-  public async getMovieInfo(title: string): Promise<MovieInfo> {
+  public async getMovieInfo(
+    title: string,
+    relevantFields: RelevantField[],
+  ): Promise<Partial<MovieInfo>> {
     const parsedTitle = this.titleParser(title);
     const url = `${this.baseUrl}?t=${parsedTitle}&apikey=${this.apiKey}`;
 
@@ -48,10 +47,13 @@ export class MovieInfoService {
       );
       throw new NotFoundException(apiResponse.data.Error);
     }
-    const filtered = this.utils.filterRelevantKeys<OmdbApiField>(
-      apiResponse.data,
-      OmdbRelevantFields,
-    );
+
+    const filterMask = this.convertRelevantFields(relevantFields);
+    const filtered = this.utils.filterRelevantKeys<
+      OmdbApiField,
+      Partial<MovieInfo>
+    >(apiResponse.data, filterMask);
+
     return this.convertReleasedToDate(filtered);
   }
 
@@ -63,6 +65,16 @@ export class MovieInfoService {
     //movieInfo has to be any because one of the fields has a wrong type at this point
 
     const cloned = cloneDeep(movieInfo);
-    return { ...cloned, released: new Date(cloned.released) };
+    if (cloned.released) {
+      return { ...cloned, released: new Date(cloned.released) };
+    } else {
+      return { ...cloned };
+    }
+  }
+
+  private convertRelevantFields(
+    relevantFields: RelevantField[],
+  ): OmdbApiField[] {
+    return relevantFields.map((field) => upperFirst(field));
   }
 }

@@ -65,7 +65,25 @@ $ docker-compose up
 
     8. In case this endpoint doesn't work, try providing new api key by changing OMDB_API_KEY variable in docker.env
 
-    9. Extra feature! Go to /src/movies/movie-info for more insight!
+    9. Extra feature! You can supply an optional argument "relevantField" to only get the info about the movie that you want! ex.:
+
+    ```
+        curl --location --request POST 'localhost:8080/movies' \
+        --header 'Authorization: Bearer [your token]' \
+        --header 'Content-Type: application/json' \
+        --data-raw '{
+        "title": "Django",
+        "relevantFields": {
+        "year": true,
+        "rated": true,
+        "genre": true,
+        "actors": true,
+        "ratings": true
+            }
+        }'
+    ```
+
+    10. Look for more options in src/movies/types/available-api-fields.interface.ts
 
 2.  `GET /movies`
 

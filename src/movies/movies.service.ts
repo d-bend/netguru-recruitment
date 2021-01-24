@@ -3,24 +3,24 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { Model, Document } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { lowerFirst } from 'lodash';
 
-import { MovieInfo } from './types/export';
+import {
+  AvailableApiFields,
+  MovieInfo,
+  RelevantField,
+  AllRelevantFields,
+  TaskSpecRelevantFields,
+} from './types/export';
 import { Movie, MovieDocument } from './schemas/movie.schema';
 
 import { MovieInfoService } from './movie-info/movie-info.service';
 import { UtilsService } from '../shared/utils/utils.service';
-import { OmdbRelevantFields } from './movie-info/omdb-api-types';
 
-type RelevantField = 'title' | 'released' | 'director' | 'genre';
 @Injectable()
 export class MoviesService {
   private readonly logger = new Logger(MoviesService.name, true);
-  private relevantFields: RelevantField[] = OmdbRelevantFields.map((field) =>
-    lowerFirst(field),
-  );
 
   constructor(
     @InjectModel(Movie.name)
@@ -35,21 +35,33 @@ export class MoviesService {
    * @param userId get it from request.user.userId
    * @param title space separated movie title
    */
-  public async createMovie(userId: number, title: string): Promise<any> {
-    const movieInfo = await this.movieInfoService.getMovieInfo(title);
+  public async createMovie(
+    userId: number,
+    title: string,
+    relevantFields?: Partial<AvailableApiFields>,
+  ): Promise<any> {
+    const fieldsToGet = this.setFieldsToGet(relevantFields);
+
+    const movieInfo = await this.movieInfoService.getMovieInfo(
+      title,
+      fieldsToGet,
+    );
 
     this.logger.debug(
-      `Fetched movie info: ${movieInfo}`,
+      `Fetched movie info: ${{ ...movieInfo }}`,
       this.createMovie.name,
     );
-    const saved = await this.saveToDB(userId, movieInfo).catch((err) => {
-      this.logger.error('Failed to save to DB', err, this.createMovie.name);
-      throw new InternalServerErrorException();
-    });
-    const result: MovieInfo = this.utils.filterRelevantKeys<
+    const saved = await this.saveToDB(userId, movieInfo, fieldsToGet).catch(
+      (err) => {
+        this.logger.error('Failed to save to DB', err, this.createMovie.name);
+        throw new InternalServerErrorException();
+      },
+    );
+    const sanitized = this.sanitizeMongooseDocument(saved);
+    const result: Partial<MovieInfo> = this.utils.filterRelevantKeys<
       RelevantField,
-      MovieInfo
-    >(saved, this.relevantFields);
+      Partial<MovieInfo>
+    >(sanitized, fieldsToGet);
 
     return result;
   }
@@ -58,7 +70,7 @@ export class MoviesService {
    * Get all movies belonging to an user
    * @param userId get it from request.user.userId
    */
-  public async getMoviesByUser(userId: number): Promise<MovieInfo[]> {
+  public async getMoviesByUser(userId: number): Promise<Partial<MovieInfo>[]> {
     const query = await this.moviesModel
       .find({ owner: userId })
       .catch((err) => {
@@ -69,35 +81,80 @@ export class MoviesService {
         );
         throw new InternalServerErrorException();
       });
-
     const filtered: MovieInfo[] = query.map((doc: MovieDocument) => {
-      let sanitized = {};
-      for (const key in doc) {
-        if (key === '_doc') {
-          sanitized = doc[key];
-        }
-      }
-      return this.utils.filterRelevantKeys<RelevantField, MovieInfo>(
+      const sanitized = this.sanitizeMongooseDocument(doc);
+
+      return this.utils.filterRelevantKeys<RelevantField, Partial<MovieInfo>>(
         sanitized,
-        this.relevantFields,
+        AllRelevantFields,
       );
     });
+
     return filtered;
   }
 
   /** This method can take in any movie information and save only the info that is relevant to the user! */
   private async saveToDB(
     userId: number,
-    movieInfo: MovieInfo,
+    movieInfo: Partial<MovieInfo>,
+    fieldsToGet: RelevantField[],
   ): Promise<MovieDocument> {
-    const filtered = this.utils.filterRelevantKeys<RelevantField, MovieInfo>(
-      movieInfo,
-      this.relevantFields,
-    );
+    const filtered = this.utils.filterRelevantKeys<
+      RelevantField,
+      Partial<MovieInfo>
+    >(movieInfo, fieldsToGet);
     return await this.moviesModel.findOneAndUpdate(
       { owner: userId, title: filtered.title },
       { ...filtered, owner: userId },
       { upsert: true, new: true },
     );
+  }
+
+  /** This is a workaround a bug when passing a mongoose doc into utils.filterRelevantKeys
+   * @param doc: Mongoose document to sanitize
+   * @returns Sanitized document comprehensible to utils.filterRelevantKeys
+   */
+  private sanitizeMongooseDocument(doc: Document) {
+    let sanitized = {};
+    for (const key in doc) {
+      if (key === '_doc') {
+        sanitized = doc[key];
+      }
+    }
+    return sanitized;
+  }
+
+  /**
+   * Call this method on optional argument to get a mask for filtering API response
+   * @param relevantFields optional arg passed in by user
+   * @returns Prepared mask or default mask
+   */
+  private setFieldsToGet(relevantFields?: Partial<AvailableApiFields>) {
+    return relevantFields
+      ? this.prepareFieldsToGet(relevantFields)
+      : TaskSpecRelevantFields;
+  }
+
+  /**
+   * Converts options param passed in by user to a mask
+   * Only call this from setFieldsToGet
+   * Converts document like: {
+   *  title: true,
+   *  director: true,
+   * }
+   * to
+   * ['title', 'director']
+   * @param relevantFields
+   */
+  private prepareFieldsToGet(
+    relevantFields: Partial<AvailableApiFields>,
+  ): RelevantField[] {
+    const result: RelevantField[] = [];
+    for (const key in relevantFields) {
+      if (relevantFields[key]) {
+        result.push(key as RelevantField);
+      }
+    }
+    return result;
   }
 }

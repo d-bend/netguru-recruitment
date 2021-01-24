@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RedisCacheService } from '../auth/redis-cache/redis-cache.service';
 import { MoviesService } from '../movies/movies.service';
 import { CreateMovieDTO } from '../DTO/create-movie.dto';
+import { AvailableApiFields } from '../movies/types/export';
 
 @Controller('/movies')
 export class MoviesController {
@@ -45,11 +46,14 @@ export class MoviesController {
    */
   @UseGuards(JwtAuthGuard, BasicUserGuard)
   @Post()
-  public async createMovie(@Req() req, @Body() { title }: CreateMovieDTO) {
+  public async createMovie(
+    @Req() req,
+    @Body() { title, relevantFields }: CreateMovieDTO,
+  ) {
     const { userId }: User = req.user;
     this.logger.debug(`user: ${JSON.stringify(req.user)}, title: ${title}`);
 
-    return await this.moviesService.createMovie(userId, title);
+    return await this.moviesService.createMovie(userId, title, relevantFields);
   }
 
   /**

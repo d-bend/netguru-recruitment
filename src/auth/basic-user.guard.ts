@@ -1,9 +1,15 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { BasicUserLookupService } from './basic-user-lookup/basic-user-lookup.service';
 import { Role } from './types/role.enum';
 
 @Injectable()
 export class BasicUserGuard implements CanActivate {
+  private readonly logger = new Logger(BasicUserGuard.name, true);
   constructor(private readonly basicUserLookup: BasicUserLookupService) {}
 
   /**
@@ -13,7 +19,7 @@ export class BasicUserGuard implements CanActivate {
     const {
       user: { sub, role },
     } = context.switchToHttp().getRequest();
-    console.log({ sub, role });
+    this.logger.debug({ sub, role }, this.canActivate.name);
     if (role === Role.PREMIUM) {
       return true;
     } else if (role === Role.BASIC) {
