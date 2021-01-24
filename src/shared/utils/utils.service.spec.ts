@@ -44,14 +44,15 @@ describe('UtilsService', () => {
       interface ImportantInterface {
         important: string;
       }
-      type Important = 'Important';
-      const relevantFields: Important[] = ['Important'];
+      type Important = 'Important' | 'Other';
+      const relevantFields: Important[] = ['Important', 'Other'];
       const unfiltered = {
         bla: 'asd',
         asd: 'asd',
         fas: 'asd',
         agsdgsa: 'asd',
         Important: 'got it!',
+        Other: 'still got it!',
       };
 
       const result = service.filterRelevantKeys<Important, ImportantInterface>(
@@ -62,6 +63,7 @@ describe('UtilsService', () => {
       expect(result.important).toBeDefined();
       expect(result.important).toBe('got it!');
       expect(result['bla']).toBeUndefined();
+      expect(result).toEqual({ important: 'got it!', other: 'still got it!' });
     });
     it('converts PascalCase to camelCase', () => {
       interface ImportantInterface {

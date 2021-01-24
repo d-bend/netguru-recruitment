@@ -16,7 +16,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: config.get(JwtConfig.JWT_SECRET),
     });
   }
-
+  /**
+   * set user: User on request,
+   *  at this point we are sure that the token was valid
+   */
   async validate({ userId, sub, role }: JwtTokenPayload): Promise<User> {
     return { userId, sub, role };
   }

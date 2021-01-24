@@ -57,13 +57,13 @@ describe('MoviesService', () => {
     it('only returns essential fields', async () => {
       const mockDirector = 'MockDirector';
       const mockGenre = 'MockGenre';
-      const exampleTitle = 'exampleTitle';
+      const exampleTitle = 'MockTitle';
 
       const result: MovieInfo = await service.createMovie(
         exampleUID,
         exampleTitle,
       );
-
+      console.log(result);
       expect(result.title).toEqual(exampleTitle);
       expect(result.director).toEqual(mockDirector);
       expect(result.genre).toEqual(mockGenre);

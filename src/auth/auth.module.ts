@@ -8,7 +8,6 @@ import { BasicUserLookupService } from './basic-user-lookup/basic-user-lookup.se
 import { BasicUserGuard } from './basic-user.guard';
 import { JwtConfig } from 'config/enums';
 import { RedisCacheModule } from './redis-cache/redis-cache.module';
-import { RedisCacheService } from './redis-cache/redis-cache.service';
 
 @Module({
   imports: [

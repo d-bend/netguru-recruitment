@@ -1,4 +1,9 @@
-import { HttpService, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpService,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { cloneDeep } from 'lodash';
 
@@ -14,8 +19,9 @@ import { UtilsService } from '../../shared/utils/utils.service';
 
 @Injectable()
 export class MovieInfoService {
-  private baseUrl = this.config.get(MoviesConfig.baseUrl);
-  private apiKey = this.config.get(MoviesConfig.apiKey);
+  private readonly logger = new Logger(MovieInfoService.name, true);
+  private readonly baseUrl = this.config.get(MoviesConfig.baseUrl);
+  private readonly apiKey = this.config.get(MoviesConfig.apiKey);
 
   constructor(
     private readonly config: ConfigService,
@@ -31,9 +37,15 @@ export class MovieInfoService {
     const parsedTitle = this.titleParser(title);
     const url = `${this.baseUrl}?t=${parsedTitle}&apikey=${this.apiKey}`;
 
+    this.logger.debug(`Sending GET request to ${url}`, this.getMovieInfo.name);
+
     const apiResponse = await this.httpService.get(url).toPromise();
 
     if (apiResponse.data.Response === OmdbApiNullResponse.false) {
+      this.logger.log(
+        `Cannot find movie: ${title} requested by user`,
+        this.getMovieInfo.name,
+      );
       throw new NotFoundException(apiResponse.data.Error);
     }
     const filtered = this.utils.filterRelevantKeys<OmdbApiField>(

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MockedRedisCacheService } from '../mocks/redis-cache.service.mock';
+import { MockedRedisCacheService } from '../mocks/export';
 import { RedisCacheService } from '../redis-cache/redis-cache.service';
 import { BasicUserLookupService } from './basic-user-lookup.service';
 

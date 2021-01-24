@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER } from '@nestjs/common';
 
-import { MockedCache } from '../mocks/cache.mock';
+import { MockedCache } from '../mocks/export';
 
 import { RedisCacheService } from './redis-cache.service';
 

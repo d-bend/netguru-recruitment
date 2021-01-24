@@ -4,6 +4,7 @@ import { lowerFirst } from 'lodash';
 @Injectable()
 export class UtilsService {
   /**
+   * This is a very generic method that makes it possible for the user to specify which information about a movie is relevant to him and filter out irrelevant info!
  * @type T = union type of keys that will be used for filtering
  * @type S = return type for resolving type conflicts
  *  

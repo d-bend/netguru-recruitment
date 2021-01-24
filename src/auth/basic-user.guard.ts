@@ -6,6 +6,9 @@ import { Role } from './types/role.enum';
 export class BasicUserGuard implements CanActivate {
   constructor(private readonly basicUserLookup: BasicUserLookupService) {}
 
+  /**
+   * This guards restricts users to only make 5 requests per month.
+   */
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     const {
       user: { sub, role },
@@ -14,10 +17,8 @@ export class BasicUserGuard implements CanActivate {
     if (role === Role.PREMIUM) {
       return true;
     } else if (role === Role.BASIC) {
-      console.log('basic');
       return await this.basicUserLookup.checkLimit(sub);
     } else {
-      console.log('other');
       return false;
     }
   }

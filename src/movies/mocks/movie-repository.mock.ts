@@ -1,10 +1,14 @@
 import { Movie } from '../schemas/movie.schema';
 
 export class MockMovieRepository {
-  public async find({ owner }: Partial<Movie>) {
+  /**
+   * This mock sets 'other' field on the return object
+   * @param queryParams whatever you supply here will be present on response
+   */
+  public async find({ owner, title }: Partial<Movie>) {
     const result = {
       owner,
-      title: 'MockTitle',
+      title,
       director: 'MockDirector',
       genre: 'MockGenre',
       released: new Date(),
@@ -12,9 +16,16 @@ export class MockMovieRepository {
     };
     return [result, result, result, result];
   }
-  public async updateOne(
+  /**
+   *  This mock sets 'other' field on the return object
+   * @param dummyQuery throw-away data
+   * @param documentToSave new document to be saved or overwritten
+   * @param dummyOptions throw-away data
+   */
+  public async findOneAndUpdate(
     dummyQuery: Partial<Movie>,
     { owner, title, genre, director, released }: Movie,
+    dummyOptions: any,
   ) {
     return {
       owner,
