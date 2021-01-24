@@ -1,7 +1,6 @@
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MovieInfoService } from './movie-info/movie-info.service';
-import { Types } from 'mongoose';
 
 import { MoviesService } from './movies.service';
 import { Movie } from './schemas/movie.schema';
@@ -39,8 +38,9 @@ describe('MoviesService', () => {
 
   describe('getMoviesByUser', () => {
     it('should only returns essential fields', async () => {
-      const result: MovieInfo[] = await service.getMoviesByUser(exampleUID);
-
+      const result: Partial<MovieInfo>[] = await service.getMoviesByUser(
+        exampleUID,
+      );
       result.forEach((el) => {
         expect(el).toBeDefined();
         expect(el.director).toBeDefined();
@@ -57,13 +57,12 @@ describe('MoviesService', () => {
     it('only returns essential fields', async () => {
       const mockDirector = 'MockDirector';
       const mockGenre = 'MockGenre';
-      const exampleTitle = 'exampleTitle';
+      const exampleTitle = 'MockTitle';
 
-      const result: MovieInfo = await service.createMovie(
+      const result: Partial<MovieInfo> = await service.createMovie(
         exampleUID,
         exampleTitle,
       );
-
       expect(result.title).toEqual(exampleTitle);
       expect(result.director).toEqual(mockDirector);
       expect(result.genre).toEqual(mockGenre);

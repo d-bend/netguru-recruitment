@@ -5,6 +5,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { MoviesConfig } from '../../../config/enums';
 import { MovieInfoService } from './movie-info.service';
 import { of } from 'rxjs';
+import { RelevantField } from '../types/export';
 
 const mockedConfigService = {
   get(key: string) {
@@ -65,8 +66,17 @@ describe('MovieInfoService', () => {
     expect(service).toBeDefined();
   });
   describe('getMovieInfo', () => {
+    const exampleFilterMask: RelevantField[] = [
+      'title',
+      'director',
+      'genre',
+      'released',
+    ];
     it('sets fields correctly', async () => {
-      const result = await service.getMovieInfo('The Goodfellas');
+      const result = await service.getMovieInfo(
+        'The Goodfellas',
+        exampleFilterMask,
+      );
 
       expect(result).toBeDefined();
       expect(result.director).toBe('MockDirector');
@@ -75,27 +85,36 @@ describe('MovieInfoService', () => {
       expect(result.released).toBeDefined();
     });
     it('should set correct date', async () => {
-      const result = await service.getMovieInfo('The Godfather');
+      const result = await service.getMovieInfo(
+        'The Godfather',
+        exampleFilterMask,
+      );
 
       expect(result.released).toEqual(new Date(1972, 2, 24));
     });
 
     it('throws 404 on unexisting movie', async () => {
       const expectedToThrow = async () => {
-        return await service.getMovieInfo('Im not real');
+        return await service.getMovieInfo('Im not real', exampleFilterMask);
       };
 
       expect(expectedToThrow()).rejects.toThrowError(NotFoundException);
     });
     it('throws error on title that wasnt space-separated', async () => {
       const expectedToThrow = async () => {
-        return await service.getMovieInfo('this+was+not+spaced');
+        return await service.getMovieInfo(
+          'this,was,not,spaced',
+          exampleFilterMask,
+        );
       };
 
       expect(expectedToThrow()).rejects.toThrowError(NotFoundException);
     });
     it('doesnt return irrelevant fields', async () => {
-      const result = await service.getMovieInfo('Pulp Fiction');
+      const result = await service.getMovieInfo(
+        'Pulp Fiction',
+        exampleFilterMask,
+      );
 
       expect(result['Other']).toBeUndefined();
     });

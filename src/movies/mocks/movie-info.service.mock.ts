@@ -1,7 +1,7 @@
 import { MovieInfo } from '../types/export';
 
 export class MockMovieInfoService {
-  public async getMovieInfo(title: string): Promise<MovieInfo> {
+  public async getMovieInfo(title: string): Promise<Partial<MovieInfo>> {
     return {
       title,
       director: 'MockDirector',
